@@ -60,7 +60,7 @@
   async function loadMemes() {
     const container = document.getElementById('meme-container');
     try {
-      const res = await fetch('http://funnimemecenter.netlify.app/memes.json');
+      const res = await fetch('memes.json');
       if (!res.ok) throw new Error('Failed to fetch memes JSON');
       const data = await res.json();
 
