@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Edit Memes Manager</title>
+<style>
+  body {
+    background: #121212;
+    color: #eee;
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+    padding: 1rem;
+  }
+  h1 {
+    text-align: center;
+    color: #ff4081;
+    margin-bottom: 1rem;
+  }
+  .meme-item {
+    background: #222;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 0 8px #ff4081aa;
+  }
+  label {
+    display: block;
+    margin-top: 0.5rem;
+    font-weight: bold;
+  }
+  input[type=text] {
+    width: 100%;
+    padding: 0.3rem;
+    margin-top: 0.3rem;
+    border-radius: 5px;
+    border: none;
+  }
+  button {
+    margin-top: 1rem;
+    background: #ff4081;
+    border: none;
+    padding: 0.5rem 1rem;
+    color: white;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  .preview {
+    margin-top: 0.5rem;
+  }
+  img, iframe {
+    max-width: 100%;
+    border-radius: 8px;
+  }
+  .delete-btn {
+    background: #aa2233;
+    float: right;
+  }
+</style>
+</head>
+<body>
+
+<h1>Edit Memes</h1>
+<div id="memes-list">Loading memes...</div>
+<button id="save-btn">Save Changes</button>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+
+  // Your Firebase config here:
+  const firebaseConfig = {
+    apiKey: "AIzaSyB5Ro_67KVKG-J2J1hfmeesaFT1lMdWGrc",
+    authDomain: "meme-center-75461.firebaseapp.com",
+    projectId: "meme-center-75461",
+    storageBucket: "meme-center-75461.firebasestorage.app",
+    messagingSenderId: "373281038905",
+    appId: "1:373281038905:web:adacdabc6bb85d229ba3e8",
+    measurementId: "G-8EE5MK4SYG"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const MEMES_COLLECTION = "memesCollection";
+  const MEMES_DOC_ID = "memesJsonDoc";
+
+  let memesData = [];
+
+  const memesList = document.getElementById('memes-list');
+  const saveBtn = document.getElementById('save-btn');
+
+  function createMemeElement(meme, index) {
+    const div = document.createElement('div');
+    div.className = 'meme-item';
+
+    // Delete button
+    const delBtn = document.createElement('button');
+    delBtn.textContent = "Delete";
+    delBtn.className = "delete-btn";
+    delBtn.onclick = () => {
+      if (confirm("Delete this meme?")) {
+        memesData.splice(index, 1);
+        renderMemes();
+      }
+    };
+    div.appendChild(delBtn);
+
+    // Type (read-only)
+    const typeLabel = document.createElement('label');
+    typeLabel.textContent = "Type:";
+    div.appendChild(typeLabel);
+    const typeInput = document.createElement('input');
+    typeInput.type = "text";
+    typeInput.value = meme.type;
+    typeInput.readOnly = true;
+    div.appendChild(typeInput);
+
+    // URL or embedUrl input
+    const urlLabel = document.createElement('label');
+    urlLabel.textContent = meme.type === "image" ? "Image URL:" : "Embed URL:";
+    div.appendChild(urlLabel);
+    const urlInput = document.createElement('input');
+    urlInput.type = "text";
+    urlInput.value = meme.type === "image" ? meme.url : meme.embedUrl;
+    urlInput.oninput = e => {
+      if(meme.type === "image") {
+        meme.url = e.target.value;
+      } else {
+        meme.embedUrl = e.target.value;
+      }
+    };
+    div.appendChild(urlInput);
+
+    // Alt text input (for images)
+    if (meme.type === "image") {
+      const altLabel = document.createElement('label');
+      altLabel.textContent = "Alt Text:";
+      div.appendChild(altLabel);
+      const altInput = document.createElement('input');
+      altInput.type = "text";
+      altInput.value = meme.alt || "";
+      altInput.oninput = e => {
+        meme.alt = e.target.value;
+      };
+      div.appendChild(altInput);
+    }
+
+    // Preview
+    const preview = document.createElement('div');
+    preview.className = "preview";
+    if (meme.type === "image") {
+      const img = document.createElement('img');
+      img.src = meme.url;
+      img.alt = meme.alt || "";
+      preview.appendChild(img);
+    } else if (meme.type === "video" && meme.platform === "youtube") {
+      const iframe = document.createElement('iframe');
+      iframe.src = meme.embedUrl;
+      iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
+      iframe.allowFullscreen = true;
+      iframe.title = "YouTube video player";
+      preview.appendChild(iframe);
+    }
+    div.appendChild(preview);
+
+    return div;
+  }
+
+  function renderMemes() {
+    memesList.innerHTML = "";
+    if(memesData.length === 0) {
+      memesList.textContent = "No memes found.";
+      return;
+    }
+    memesData.forEach((meme, idx) => {
+      memesList.appendChild(createMemeElement(meme, idx));
+    });
+  }
+
+  async function loadMemes() {
+    memesList.textContent = "Loading memes...";
+    const docRef = doc(db, MEMES_COLLECTION, MEMES_DOC_ID);
+    const docSnap = await getDoc(docRef);
+    if(!docSnap.exists()) {
+      memesData = [];
+      renderMemes();
+      return;
+    }
+    memesData = docSnap.data().memes || [];
+    renderMemes();
+  }
+
+  async function saveMemes() {
+    saveBtn.disabled = true;
+    saveBtn.textContent = "Saving...";
+    const docRef = doc(db, MEMES_COLLECTION, MEMES_DOC_ID);
+    try {
+      await setDoc(docRef, { memes: memesData });
+      alert("Memes saved!");
+    } catch(e) {
+      alert("Failed to save: " + e.message);
+    }
+    saveBtn.disabled = false;
+    saveBtn.textContent = "Save Changes";
+  }
+
+  saveBtn.addEventListener('click', saveMemes);
+
+  loadMemes();
+
+</script>
+</body>
+</html>
