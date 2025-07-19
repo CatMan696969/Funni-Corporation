@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Funni Meme Center</title>
+  <title>Funni Meme Center 😂</title>
   <style>
     body {
       background: #121212;
@@ -69,16 +69,59 @@
   <button id="upload-btn">Upload Meme</button>
   <div id="meme-container">Loading memes...</div>
 
-  <script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+    import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyB5Ro_67KVKG-J2J1hfmeesaFT1lMdWGrc",
+      authDomain: "meme-center-75461.firebaseapp.com",
+      projectId: "meme-center-75461",
+      storageBucket: "meme-center-75461.firebasestorage.app",
+      messagingSenderId: "373281038905",
+      appId: "1:373281038905:web:adacdabc6bb85d229ba3e8",
+      measurementId: "G-8EE5MK4SYG"
+    };
+
+    // Initialize Firebase and Firestore
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const MEMES_COLLECTION = "memesCollection";
+    const MEMES_DOC_ID = "memesJsonDoc";
+
+    async function initializeMemesDoc() {
+      const docRef = doc(db, MEMES_COLLECTION, MEMES_DOC_ID);
+      const docSnap = await getDoc(docRef);
+      if (!docSnap.exists()) {
+        await setDoc(docRef, { memes: [] });
+        console.log("Memes document created.");
+      }
+    }
+
     async function loadMemes() {
       const container = document.getElementById('meme-container');
+      container.innerHTML = "Loading memes...";
       try {
-        const res = await fetch('memes.json');
-        if (!res.ok) throw new Error('Failed to fetch memes JSON');
-        const data = await res.json();
+        const docRef = doc(db, MEMES_COLLECTION, MEMES_DOC_ID);
+        const docSnap = await getDoc(docRef);
+
+        if (!docSnap.exists()) {
+          container.innerHTML = `<p style="color:#f88; text-align:center;">No memes found.</p>`;
+          return;
+        }
+
+        const data = docSnap.data();
+        const memes = data.memes || [];
+
+        if (memes.length === 0) {
+          container.innerHTML = `<p style="color:#888; text-align:center;">No memes yet. Be the first to add one!</p>`;
+          return;
+        }
 
         container.innerHTML = '';
-        data.memes.forEach(meme => {
+        memes.forEach(meme => {
           const div = document.createElement('div');
           div.className = 'meme';
 
@@ -91,8 +134,7 @@
           } else if (meme.type === 'video' && meme.platform === 'youtube') {
             const iframe = document.createElement('iframe');
             iframe.src = meme.embedUrl;
-            iframe.allow =
-              "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
+            iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
             iframe.allowFullscreen = true;
             iframe.title = "YouTube video player";
             div.appendChild(iframe);
@@ -107,36 +149,57 @@
     }
 
     document.getElementById('upload-btn').addEventListener('click', async () => {
-      const url = prompt("Enter meme image URL:");
+      const url = prompt("Enter meme URL (image or YouTube embed URL):");
       if (!url) return;
 
-      const newMeme = {
-        type: "image",
-        url: url,
-        alt: "User submitted meme"
-      };
-
-      // Send to Netlify function
-      try {
-        const res = await fetch('/.netlify/functions/add-meme', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(newMeme)
-        });
-
-        const result = await res.json();
-        if (result.success) {
-          alert('Meme added!');
-          loadMemes(); // reload
-        } else {
-          throw new Error(result.message || 'Unknown error');
+      // Determine meme type from URL
+      let newMeme = null;
+      if (url.match(/\.(jpeg|jpg|gif|png|webp)$/i)) {
+        newMeme = {
+          type: "image",
+          url: url,
+          alt: "User submitted meme"
+        };
+      } else if (url.includes("youtube.com/embed/") || url.includes("youtu.be/")) {
+        // Convert youtu.be short link to embed URL if needed
+        let embedUrl = url;
+        if (url.includes("youtu.be/")) {
+          const videoId = url.split("youtu.be/")[1].split(/[?&]/)[0];
+          embedUrl = `https://www.youtube.com/embed/${videoId}`;
         }
+        newMeme = {
+          type: "video",
+          platform: "youtube",
+          embedUrl: embedUrl
+        };
+      } else {
+        alert("Unsupported URL format. Please use a direct image link or a YouTube embed URL.");
+        return;
+      }
+
+      try {
+        const docRef = doc(db, MEMES_COLLECTION, MEMES_DOC_ID);
+        // Add new meme to array with arrayUnion (avoids overwriting entire array)
+        await updateDoc(docRef, {
+          memes: arrayUnion(newMeme)
+        });
+        alert("Meme added!");
+        loadMemes();
       } catch (err) {
-        alert("Failed to upload meme: " + err.message);
+        if (err.code === 'not-found') {
+          // If doc not found, create it first
+          await setDoc(doc(db, MEMES_COLLECTION, MEMES_DOC_ID), { memes: [newMeme] });
+          alert("Meme added!");
+          loadMemes();
+        } else {
+          alert("Failed to upload meme: " + err.message);
+          console.error(err);
+        }
       }
     });
 
-    loadMemes();
+    // Initialize doc and load memes on page load
+    initializeMemesDoc().then(loadMemes);
   </script>
 </body>
 </html>
