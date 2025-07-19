@@ -113,7 +113,8 @@
         }
 
         const data = docSnap.data();
-        const memes = data.memes || [];
+        const memes = (data.memes || []).slice().reverse();
+
 
         if (memes.length === 0) {
           container.innerHTML = `<p style="color:#888; text-align:center;">No memes yet. Be the first to add one!</p>`;
