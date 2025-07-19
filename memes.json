@@ -1,0 +1,74 @@
+{
+  "memes": [
+    {
+      "type": "image",
+      "url": "https://tse3.mm.bing.net/th/id/OIP.NHHQsu42gMcO-op-BB7wkgAAAA?pid=ImgDet&w=178&h=198&c=7&dpr=2&o=7&rm=3",
+      "alt": "Funny meme"
+    },
+    {
+      "type": "video",
+      "platform": "youtube",
+      "embedUrl": "https://www.youtube.com/embed/-bROlO-KMto?si=kXWU4fNJhWF30YAU"
+    },
+    {
+      "type": "video",
+      "platform": "youtube",
+      "embedUrl": "https://www.youtube.com/embed/ejSRqO74Lik?si=aHbKVmrZOlIpVgiq"
+    },
+    {
+      "type": "video",
+      "platform": "youtube",
+      "embedUrl": "https://www.youtube.com/embed/opv4gTmAOG4?si=nbyNBB9Lxuf5NZuv"
+    },
+    {
+      "type": "video",
+      "platform": "youtube",
+      "embedUrl": "https://www.youtube.com/embed/v5bsgPavJGw?si=OlPmhsLkBRXDR5VI"
+    },
+    {
+      "type": "video",
+      "platform": "youtube",
+      "embedUrl": "https://www.youtube.com/embed/v6TALRZjR9Q?si=lVLpH9ylEZrNl3Lp"
+    },
+    {
+      "type": "video",
+      "platform": "youtube",
+      "embedUrl": "https://www.youtube.com/embed/6_GV_PR7mno?si=EIBIkF_jW_xkSGn3"
+    },
+    {
+      "type": "video",
+      "platform": "youtube",
+      "embedUrl": "https://www.youtube.com/embed/5jKhKTRRnLY?si=00_2idYMRJcsHwER"
+    },
+    {
+      "type": "video",
+      "platform": "youtube",
+      "embedUrl": "https://www.youtube.com/embed/nGKXwcdabYA?si=XTVpze3W_QeDH7RW"
+    },
+    {
+      "type": "video",
+      "platform": "youtube",
+      "embedUrl": "https://www.youtube.com/embed/kb8o2jyOGWI?si=fJM7Qo_3VTcud5X9"
+    },
+    {
+      "type": "video",
+      "platform": "youtube",
+      "embedUrl": "https://www.youtube.com/embed/pRIqG0v8Ybc?si=XcWEmYyhKkG_P5Fk"
+    },
+    {
+      "type": "video",
+      "platform": "youtube",
+      "embedUrl": "https://www.youtube.com/embed/9X1gCQYlZHM?si=-6i08RvKtpBgGT3l"
+    },
+    {
+      "type": "video",
+      "platform": "youtube",
+      "embedUrl": "https://www.youtube.com/embed/hnqiR5KxbHE?si=fyNfqkdm4K26V1gy"
+    },
+    {
+      "type": "image",
+      "url": "https://th.bing.com/th/id/R.f5fc80a0560eea9eec489281c42b374f?rik=FzKd2EC8MdMHDg&pid=ImgRaw&r=0",
+      "alt": ""
+    }
+  ]
+}
